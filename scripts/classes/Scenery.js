@@ -25,7 +25,7 @@ export default class Scenery extends FormApplication {
    * Obtain module metadata and merge it with game settings which track current module visibility
    * @return {Object}   The data provided to the template when rendering the form
    */
-  async getData({}) {
+  async getData(options) {
     const flag = this.scene.getFlag('scenery', 'data') || {};
     if (!this.bg) this.bg = flag.bg || this.scene.background.src;
     if (!this.gm) this.gm = {
