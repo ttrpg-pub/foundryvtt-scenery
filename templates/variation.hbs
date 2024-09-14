@@ -35,4 +35,6 @@
     <input value="{{ id }}" {{#if (eq id @root.pl.id)}}checked{{/if}} type="radio" name="pl" data-dtype="boolean">
   </td>
 
+  <input type="text" name="variations.{{ id }}.data" value="{{ data }}" data-dtype="String" hidden />
+
 </tr>

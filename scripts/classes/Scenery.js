@@ -37,10 +37,8 @@ export default class Scenery extends FormApplication {
       file: flag.pl?.file || this.scene.background.src,
     };
     if (!this.variations) {
-      console.log("Scenery getData() no current variations, building new")
       this.variations = []
       if (!flag.variations)  this.variations.push({ name: 'Default', file: this.bg });
-      console.log("Scenery getData() flag.variations", flag.variations);
       if (flag.variations) flag.variations.forEach((v) => this.variations.push(v));
     }
 
@@ -48,18 +46,16 @@ export default class Scenery extends FormApplication {
     this.variations.push({ name: '', file: '' });
     // Return data to the template
     const rd = { variations: this.variations, gm: this.gm, pl: this.pl };
-    console.log("Scenery getData() returns", rd);
     return rd;
   }
 
   async getSceneData() {
-    return {
-      "flags": this.scene.getFlag('scenery', 'data') || {},
-      "lights": JSON.stringify(canvas.scene.lights),
-      "sounds": JSON.stringify(canvas.scene.sounds),
-      "tiles": JSON.stringify(canvas.scene.tiles),
-      "walls": JSON.stringify(canvas.scene.walls),
-    }
+    return JSON.stringify({
+      "lights": canvas.scene.lights,
+      "sounds": canvas.scene.sounds,
+      "tiles": canvas.scene.tiles,
+      "walls": canvas.scene.walls,
+    });
   }
 
   /* -------------------------------------------- */
@@ -129,11 +125,10 @@ export default class Scenery extends FormApplication {
    * @private
    */
   async _updateObject(event, formData) {
-    const sceneData = await this.getSceneData();
     const fd = foundry.utils.expandObject(formData);
-    console.log("Scenery _updateObject data", sceneData, fd)
     const bg = fd.variations[0].file;
     const variations = Object.values(fd.variations).filter((v) => v.file);
+    variations[this.scene.getFlag('scenery', 'data').gm.id].data = await this.getSceneData();;
     const gm = {
       id: parseInt(formData.gm),
       file: fd.variations[$('input[name="gm"]:checked').val()]?.file
