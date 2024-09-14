@@ -118,14 +118,21 @@ export default class Scenery extends FormApplication {
    * @private
    */
   async _updateObject(event, formData) {
+    const sceneData = await this.getSceneData();
     const fd = foundry.utils.expandObject(formData);
     const bg = fd.variations[0].file;
     const variations = Object.values(fd.variations)
       .slice(1)
       .filter((v) => v.file);
-    const gm = fd.variations[$('input[name="gm"]:checked').val()]?.file;
-    const pl = fd.variations[$('input[name="pl"]:checked').val()]?.file;
-    if (!gm || !pl) {
+    const gm = {
+      id: parseInt(formData.gm),
+      file: fd.variations[$('input[name="gm"]:checked').val()]?.file
+    };
+    const pl = {
+      id: parseInt(formData.pl),
+      file: fd.variations[$('input[name="pl"]:checked').val()]?.file
+    };
+    if (!gm.file || !pl.file) {
       ui.notifications.error(game.i18n.localize('SCENERY.ERROR_SELECTION'));
       return;
     }
@@ -210,7 +217,7 @@ export default class Scenery extends FormApplication {
   static _onCanvasInit() {
     const data = canvas.scene.getFlag('scenery', 'data');
     if (!data) return;
-    const img = (game.user.isGM) ? data.gm : data.pl;
+    const img = (game.user.isGM) ? data.gm.file : data.pl.file;
     if (img) Scenery.setImage(img, false);
   }
 
@@ -223,7 +230,7 @@ export default class Scenery extends FormApplication {
     ui.scenes.render();
     if (!scene._view) return;
     if (foundry.utils.hasProperty(data, 'flags.scenery.data')) {
-      const img = (game.user.isGM) ? data.flags.scenery.data.gm : data.flags.scenery.data.pl;
+      const img = (game.user.isGM) ? data.flags.scenery.data.gm.file : data.flags.scenery.data.pl.file;
       if (img) Scenery.setImage(img);
     }
   }
