@@ -230,7 +230,7 @@ export default class Scenery extends FormApplication {
     ui.scenes.render();
     if (!scene._view) return;
     if (foundry.utils.hasProperty(data, 'flags.scenery.data')) {
-      const img = (game.user.isGM) ? data.flags.scenery.data.gm.file : data.flags.scenery.data.pl.file;
+      const img = (game.user.isGM) ? data.flags.scenery.data.gm?.file : data.flags.scenery.data.pl?.file;
       if (img) Scenery.setImage(img);
     }
   }
