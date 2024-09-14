@@ -28,8 +28,14 @@ export default class Scenery extends FormApplication {
   async getData({}) {
     const flag = this.scene.getFlag('scenery', 'data') || {};
     if (!this.bg) this.bg = flag.bg || this.scene.background.src;
-    if (!this.gm) this.gm = flag.gm || this.scene.background.src;
-    if (!this.pl) this.pl = flag.pl || this.scene.background.src;
+    if (!this.gm) this.gm = {
+      id: flag.gm?.id || 0,
+      file: flag.gm?.file || this.scene.background.src,
+    };
+    if (!this.pl) this.pl = {
+      id: flag.pl?.id || 0,
+      file: flag.pl?.file || this.scene.background.src,
+    };
     if (!this.variations) {
       console.log("Scenery getData() no current variations, building new")
       this.variations = []
@@ -249,12 +255,12 @@ export default class Scenery extends FormApplication {
   static _onRenderSceneDirectory(sceneDir, html) {
     if (!game.settings.get('scenery', 'showVariationsLabel')) return;
     Object.values(sceneDir.documents)
-      .filter((f) => f.flags.scenery !== undefined && f.flags.scenery.data.variations.length > 0)
+      .filter((f) => f.flags.scenery !== undefined && f.flags.scenery.data.variations.length > 1)
       .forEach((entry) => {
         const menuEntry = html[0].querySelectorAll(`[data-document-id="${entry._id}"]`)[0];
         const label = document.createElement('label');
         label.classList.add('scenery-variations');
-        label.innerHTML = `<i class="fa fa-images"></i> ${entry.flags.scenery.data.variations.length + 1}`;
+        label.innerHTML = `<i class="fa fa-images"></i> ${entry.flags.scenery.data.variations.length}`;
         menuEntry.prepend(label);
       });
   }
