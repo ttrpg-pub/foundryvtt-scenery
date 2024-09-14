@@ -31,19 +31,24 @@ export default class Scenery extends FormApplication {
     if (!this.gm) this.gm = flag.gm || this.scene.background.src;
     if (!this.pl) this.pl = flag.pl || this.scene.background.src;
     if (!this.variations) {
-      this.variations = [{ name: 'Default', file: this.bg }];
+      console.log("Scenery getData() no current variations, building new")
+      this.variations = []
+      if (!flag.variations)  this.variations.push({ name: 'Default', file: this.bg });
+      console.log("Scenery getData() flag.variations", flag.variations);
       if (flag.variations) flag.variations.forEach((v) => this.variations.push(v));
     }
 
     // Add extra empty variation
     this.variations.push({ name: '', file: '' });
     // Return data to the template
-    return { variations: this.variations, gm: this.gm, pl: this.pl };
+    const rd = { variations: this.variations, gm: this.gm, pl: this.pl };
+    console.log("Scenery getData() returns", rd);
+    return rd;
   }
 
   async getSceneData() {
-    const flag = this.scene.getFlag('scenery', 'data') || {};
-    const data = {
+    return {
+      "flags": this.scene.getFlag('scenery', 'data') || {},
       "lights": JSON.stringify(canvas.scene.lights),
       "sounds": JSON.stringify(canvas.scene.sounds),
       "tiles": JSON.stringify(canvas.scene.tiles),
@@ -120,10 +125,9 @@ export default class Scenery extends FormApplication {
   async _updateObject(event, formData) {
     const sceneData = await this.getSceneData();
     const fd = foundry.utils.expandObject(formData);
+    console.log("Scenery _updateObject data", sceneData, fd)
     const bg = fd.variations[0].file;
-    const variations = Object.values(fd.variations)
-      .slice(1)
-      .filter((v) => v.file);
+    const variations = Object.values(fd.variations).filter((v) => v.file);
     const gm = {
       id: parseInt(formData.gm),
       file: fd.variations[$('input[name="gm"]:checked').val()]?.file
@@ -137,6 +141,7 @@ export default class Scenery extends FormApplication {
       return;
     }
     const data = { variations, bg, gm, pl };
+    console.log("Scenery _updateObject sets data", data)
     await this.scene.update({ img: bg });
     this.scene.setFlag('scenery', 'data', data);
   }

@@ -13,7 +13,7 @@
   </td>
 
   <td class="scenery-name">
-    <input type="text" name="variations.{{ id }}.name" value="{{ name }}"
+    <input type="text" name="variations.{{ id }}.name" value="{{#if (eq id 0) }}Default{{else}}{{ name }}{{/if}}"
       placeholder="New Variation" data-dtype="String" {{#if (eq id 0) }}disabled{{/if}}>
   </td>
 
