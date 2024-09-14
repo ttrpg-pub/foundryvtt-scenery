@@ -22,6 +22,7 @@ module.exports = {
     }],
     // Personal Preference
     'linebreak-style': 'off',
+    'max-len': ['error', { code: 120 }],
     'no-mixed-operators': 'off',
     'no-param-reassign': 'off',
     'brace-style': [
@@ -464,5 +465,6 @@ module.exports = {
     keyboard: 'readonly',
     JSHINT: 'readonly',
     game: 'readonly',
+    foundry: 'readonly',
   },
 };

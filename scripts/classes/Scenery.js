@@ -25,37 +25,32 @@ export default class Scenery extends FormApplication {
    * Obtain module metadata and merge it with game settings which track current module visibility
    * @return {Object}   The data provided to the template when rendering the form
    */
+  // eslint-disable-next-line no-unused-vars
   async getData(options) {
     const flag = this.scene.getFlag('scenery', 'data') || {};
     if (!this.bg) this.bg = flag.bg || this.scene.background.src;
-    if (!this.gm) this.gm = {
-      id: flag.gm?.id || 0,
-      file: flag.gm?.file || this.scene.background.src,
-    };
-    if (!this.pl) this.pl = {
-      id: flag.pl?.id || 0,
-      file: flag.pl?.file || this.scene.background.src,
-    };
+    if (!this.gm) {
+      this.gm = {
+        id: flag.gm?.id || 0,
+        file: flag.gm?.file || this.scene.background.src,
+      };
+    }
+    if (!this.pl) {
+      this.pl = {
+        id: flag.pl?.id || 0,
+        file: flag.pl?.file || this.scene.background.src,
+      };
+    }
     if (!this.variations) {
-      this.variations = []
-      if (!flag.variations)  this.variations.push({ name: 'Default', file: this.bg });
+      this.variations = [];
+      if (!flag.variations) this.variations.push({ name: 'Default', file: this.bg });
       if (flag.variations) flag.variations.forEach((v) => this.variations.push(v));
     }
 
     // Add extra empty variation
     this.variations.push({ name: '', file: '' });
     // Return data to the template
-    const rd = { variations: this.variations, gm: this.gm, pl: this.pl };
-    return rd;
-  }
-
-  async getSceneData() {
-    return JSON.stringify({
-      "lights": canvas.scene.lights,
-      "sounds": canvas.scene.sounds,
-      "tiles": canvas.scene.tiles,
-      "walls": canvas.scene.walls,
-    });
+    return { variations: this.variations, gm: this.gm, pl: this.pl };
   }
 
   /* -------------------------------------------- */
@@ -128,21 +123,25 @@ export default class Scenery extends FormApplication {
     const fd = foundry.utils.expandObject(formData);
     const bg = fd.variations[0].file;
     const variations = Object.values(fd.variations).filter((v) => v.file);
-    variations[this.scene.getFlag('scenery', 'data').gm.id].data = await this.getSceneData();;
+    variations[this.scene.getFlag('scenery', 'data').gm.id].data = JSON.stringify({
+      lights: canvas.scene.lights,
+      sounds: canvas.scene.sounds,
+      tiles: canvas.scene.tiles,
+      walls: canvas.scene.walls,
+    });
     const gm = {
-      id: parseInt(formData.gm),
-      file: fd.variations[$('input[name="gm"]:checked').val()]?.file
+      id: parseInt(formData.gm, 10),
+      file: fd.variations[$('input[name="gm"]:checked').val()]?.file,
     };
     const pl = {
-      id: parseInt(formData.pl),
-      file: fd.variations[$('input[name="pl"]:checked').val()]?.file
+      id: parseInt(formData.pl, 10),
+      file: fd.variations[$('input[name="pl"]:checked').val()]?.file,
     };
     if (!gm.file || !pl.file) {
       ui.notifications.error(game.i18n.localize('SCENERY.ERROR_SELECTION'));
       return;
     }
     const data = { variations, bg, gm, pl };
-    console.log("Scenery _updateObject sets data", data)
     await this.scene.update({ img: bg });
     this.scene.setFlag('scenery', 'data', data);
   }
@@ -202,18 +201,26 @@ export default class Scenery extends FormApplication {
 
   /**
    * Sets background image of the current scene
-   * @param {String} img   The image URL to be used
+   * @param {Object} data   The image URL to be used
    * @param {Boolean} draw Used to prevent draw if being called during canvasInit
    */
-  static async setImage(img, draw = true) {
-    canvas.scene.background.src = img;
+  static async setScenery(data, draw = true) {
+    canvas.scene.background.src = data.img;
     if (draw) {
       // Wait for texture to load
       await TextureLoader.loader.load(
-        [img],
+        [data.img],
         { message: game.i18n.localize('SCENERY.LOADING') },
       );
       await canvas.draw();
+      ['AmbientLight', 'AmbientSound', 'Tile', 'Wall'].forEach((document) => {
+        canvas.scene.deleteEmbeddedDocuments(document, [], { deleteAll: true });
+      });
+      const sceneData = JSON.parse(data.sceneData);
+      canvas.scene.createEmbeddedDocuments('AmbientLight', sceneData.lights);
+      canvas.scene.createEmbeddedDocuments('AmbientSound', sceneData.sounds);
+      canvas.scene.createEmbeddedDocuments('Tile', sceneData.tiles);
+      canvas.scene.createEmbeddedDocuments('Wall', sceneData.walls);
     }
   }
 
@@ -224,7 +231,7 @@ export default class Scenery extends FormApplication {
     const data = canvas.scene.getFlag('scenery', 'data');
     if (!data) return;
     const img = (game.user.isGM) ? data.gm.file : data.pl.file;
-    if (img) Scenery.setImage(img, false);
+    if (img) Scenery.setScenery({ img }, false);
   }
 
   /**
@@ -237,7 +244,10 @@ export default class Scenery extends FormApplication {
     if (!scene._view) return;
     if (foundry.utils.hasProperty(data, 'flags.scenery.data')) {
       const img = (game.user.isGM) ? data.flags.scenery.data.gm?.file : data.flags.scenery.data.pl?.file;
-      if (img) Scenery.setImage(img);
+      const sceneData = (game.user.isGM)
+        ? data.flags.scenery.data.variations[data.flags.scenery.data.gm.id].data
+        : data.flags.scenery.data.variations[data.flags.scenery.data.pl.id].data;
+      if (img) Scenery.setScenery({ img, sceneData });
     }
   }
 
