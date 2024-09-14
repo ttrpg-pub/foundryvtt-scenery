@@ -41,6 +41,16 @@ export default class Scenery extends FormApplication {
     return { variations: this.variations, gm: this.gm, pl: this.pl };
   }
 
+  async getSceneData() {
+    const flag = this.scene.getFlag('scenery', 'data') || {};
+    const data = {
+      "lights": JSON.stringify(canvas.scene.lights),
+      "sounds": JSON.stringify(canvas.scene.sounds),
+      "tiles": JSON.stringify(canvas.scene.tiles),
+      "walls": JSON.stringify(canvas.scene.walls),
+    }
+  }
+
   /* -------------------------------------------- */
   /*  Event Listeners and Handlers                */
   /* -------------------------------------------- */
