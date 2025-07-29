@@ -1,6 +1,5 @@
 module.exports = {
   env: {
-    jquery: true,
     browser: true,
     es2020: true,
   },
@@ -38,7 +37,6 @@ module.exports = {
   globals: {
     AudioHelper: 'readonly',
     Collection: 'readonly',
-    Hooks: 'readonly',
     KeyboardManager: 'readonly',
     ClientSettings: 'readonly',
     WorldSettingsStorage: 'readonly',
